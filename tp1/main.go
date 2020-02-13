@@ -8,8 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
+
 	"time"
+
+	"github.com/akamensky/argparse"
 )
 
 const hybridThreshold = 10
@@ -29,13 +31,7 @@ func create(n int) (matrix, error) {
 	return m, nil
 }
 
-func fromFile(path string) (matrix, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return [][]float64{}, err
-	}
-	defer file.Close()
-
+func fromFile(file *os.File) (matrix, error) {
 	reader := bufio.NewReader(file)
 
 	str, err := reader.ReadString('\n')
@@ -78,6 +74,16 @@ func fromFile(path string) (matrix, error) {
 	return m, nil
 }
 
+func fromPath(path string) (matrix, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return [][]float64{}, err
+	}
+	defer file.Close()
+
+	return fromFile(file)
+}
+
 func (m matrix) dimension() int {
 	sy := len(m)
 	if sy == 0 {
@@ -98,6 +104,36 @@ func (m matrix) dimension() int {
 	}
 
 	return sx
+}
+
+func (m matrix) print(pretty bool) {
+	n := m.dimension()
+
+	max := 0
+	for j := 0; j < n; j++ {
+		for i := 0; i < n; i++ {
+			v := int64(m[j][i])
+			s := len(fmt.Sprintf("%d", v))
+			if s > max {
+				max = s
+			}
+		}
+	}
+
+	var format string
+	if pretty {
+		format = fmt.Sprintf("%%%dd ", max)
+	} else {
+		format = "%d "
+	}
+
+	for j := 0; j < n; j++ {
+		for i := 0; i < n; i++ {
+			v := int64(m[j][i])
+			fmt.Printf(format, v)
+		}
+		fmt.Printf("\n")
+	}
 }
 
 func (m matrix) dimensionEqual(o matrix) bool {
@@ -443,163 +479,130 @@ func (m matrix) mulStrassen(o matrix, hybrid bool) (matrix, error) {
 	return c, nil
 }
 
-func benchmark(m matrix) (uint64, uint64, uint64, error) {
-	resultNaive := uint64(0)
-	resultStrassen := uint64(0)
-	resultHybrid := uint64(0)
-
-	var err error
-
-	count := 1
-	for i := 0; i < count; i++ {
-		start := time.Now()
-		_, err = m.mulNaive(m)
-		resultNaive += uint64(time.Since(start))
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
-		start = time.Now()
-		_, err = m.mulStrassen(m, false)
-		resultStrassen += uint64(time.Since(start))
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
-		start = time.Now()
-		_, err = m.mulStrassen(m, true)
-		resultHybrid += uint64(time.Since(start))
-		if err != nil {
-			return 0, 0, 0, err
-		}
-	}
-
-	resultNaive /= uint64(count)
-	resultStrassen /= uint64(count)
-	resultHybrid /= uint64(count)
-
-	return resultNaive, resultStrassen, resultHybrid, nil
-}
-
-type dataset struct {
-	pathfmt    string
-	dimension  int
-	variations []int
-
-	resultNaive    uint64
-	resultStrassen uint64
-	resultHybrid   uint64
-}
-
-func (d *dataset) run() error {
-	d.resultNaive = 0
-	d.resultStrassen = 0
-	d.resultHybrid = 0
-
-	for i := 0; i < len(d.variations); i++ {
-		filename := fmt.Sprintf(d.pathfmt, d.dimension, d.variations[i])
-		fmt.Println("Running test", filename, "...")
-
-		m, err := fromFile(filename)
-		if err != nil {
-			return err
-		}
-
-		r1, r2, r3, err := benchmark(m)
-		if err != nil {
-			return err
-		}
-
-		d.resultNaive += r1
-		d.resultStrassen += r2
-		d.resultHybrid += r3
-	}
-
-	d.resultNaive /= uint64(len(d.variations))
-	d.resultStrassen /= uint64(len(d.variations))
-	d.resultHybrid /= uint64(len(d.variations))
-
-	return nil
-}
-
-var datasets []dataset = []dataset{
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  5,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  6,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  7,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  8,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  9,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  10,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  11,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-	dataset{
-		pathfmt:    "gen_matrix/ex_%d.%d",
-		dimension:  12,
-		variations: []int{1, 2, 3, 4, 5},
-	},
-}
-
 func main() {
-	var wg sync.WaitGroup
+	parser := argparse.NewParser("multiply", "Matrices Multiplicator")
+	useNaive := parser.Flag("1", "naive",
+		&argparse.Options{
+			Required: false,
+			Help:     "use naive algorithm",
+		})
 
-	ch := make(chan *dataset, 1000)
-	for i := 0; i < 4; i++ {
-		go func() {
-			for {
-				d, ok := <-ch
-				if !ok {
-					break
-				}
+	useStrassen := parser.Flag("2", "strassen",
+		&argparse.Options{
+			Required: false,
+			Help:     "use strassen algorithm",
+		})
 
-				if err := d.run(); err != nil {
-					fmt.Println(err.Error())
-					break
-				}
-			}
+	useHybrid := parser.Flag("3", "hybrid",
+		&argparse.Options{
+			Required: false,
+			Help:     "use hybrid algorithm",
+		})
 
-			wg.Done()
-		}()
+	doTime := parser.Flag("", "time",
+		&argparse.Options{
+			Required: false,
+			Help:     "benchmark execution time",
+		})
+
+	doPrint := parser.Flag("p", "print",
+		&argparse.Options{
+			Required: false,
+			Help:     "print the resulting matrix",
+		})
+
+	doPrettyPrint := parser.Flag("", "pretty",
+		&argparse.Options{
+			Required: false,
+			Help:     "enable pretty-printing of the resulting matrix",
+		})
+
+	matrixAFile := parser.File("a", "matrix-a", os.O_RDONLY, 0600,
+		&argparse.Options{
+			Required: true,
+			Help:     "the first matrix to multiply",
+		})
+
+	matrixBFile := parser.File("b", "matrix-b", os.O_RDONLY, 0600,
+		&argparse.Options{
+			Required: true,
+			Help:     "the second matrix to multiply",
+		})
+
+	err := parser.Parse(os.Args)
+	if err != nil {
+		fmt.Fprint(os.Stderr, parser.Usage(err))
+		os.Exit(1)
 	}
-	wg.Add(4)
 
-	for i := 0; i < len(datasets); i++ {
-		ch <- &datasets[i]
+	count := 0
+	if *useNaive {
+		count++
 	}
-	wg.Wait()
-	close(ch)
 
-	for i := 0; i < len(datasets)/3; i++ {
-		fmt.Printf("%d,%d,%d,%d\n",
-			datasets[i].dimension,
-			datasets[i].resultNaive,
-			datasets[i].resultStrassen,
-			datasets[i].resultHybrid,
-		)
+	if *useStrassen {
+		count++
+	}
+
+	if *useHybrid {
+		count++
+	}
+
+	if count > 1 {
+		fmt.Fprintln(os.Stderr, "error: multiple algorithms selected")
+		os.Exit(1)
+	}
+
+	if count == 0 {
+		*useNaive = true
+	}
+
+	matrixA, err := fromFile(matrixAFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
+	matrixB, err := fromFile(matrixBFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
+	var result matrix
+
+	start := time.Now()
+	if *useNaive {
+		if result, err = matrixA.mulNaive(matrixB); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+	}
+
+	if *useStrassen {
+		if result, err = matrixA.mulStrassen(matrixB, false); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+	}
+
+	if *useHybrid {
+		if result, err = matrixA.mulStrassen(matrixB, true); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+	}
+	elapsed := time.Since(start)
+
+	if *doPrettyPrint {
+		*doPrint = true
+	}
+
+	if *doPrint {
+		result.print(*doPrettyPrint)
+	}
+
+	if *doTime {
+		fmt.Println(float64(elapsed) / 1e6)
 	}
 }
