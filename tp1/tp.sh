@@ -5,13 +5,13 @@ get_algo_cmd() {
 
     case "$algo" in
     conv)
-        printf "--naive"
+        printf "%s" "--naive"
         ;;
     strassen)
-        printf "--strassen"
+        printf "%s" "--strassen"
         ;;
     strassenSeuil)
-        printf "--hybrid"
+        printf "%s" "--hybrid"
         ;;
     esac
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/akamensky/argparse"
 )
 
-const hybridThreshold = 10
+const hybridThreshold = 11
 
 type matrix [][]float64
 
@@ -277,7 +277,7 @@ func (m matrix) mulStrassen(o matrix, hybrid bool) (matrix, error) {
 	}
 	n := m.dimension()
 
-	if hybrid {
+	if hybrid && n < hybridThreshold {
 		return m.mulNaive(o)
 	}
 
