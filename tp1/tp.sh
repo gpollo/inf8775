@@ -50,4 +50,4 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-go run ./*.go "${ALGO[@]}" "${MATRIX_A[@]}" "${MATRIX_B[@]}" "${DO_PRINT[@]}" "${DO_TIME[@]}"
+./bin/main "${ALGO[@]}" "${MATRIX_A[@]}" "${MATRIX_B[@]}" "${DO_PRINT[@]}" "${DO_TIME[@]}"
