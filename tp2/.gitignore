@@ -1,0 +1,8 @@
+# executable
+bin/piano
+
+# generated dataset
+exemplaires/
+
+# libreoffice lock files
+.~lock*
