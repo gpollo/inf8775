@@ -1,4 +1,6 @@
-import numpy as np
+#!/usr/bin/env python3
+
+import numpy
 import os
 
 def create_partition():
@@ -9,11 +11,10 @@ def create_partition():
             for i in range(1, 11):              
                 with open(os.path.join("exemplaires", "ex_" + str(nb_notes) + "_" + str(i) + ".txt"), 'w') as fichier_exemplaire:
                     fichier_exemplaire.write(str(nb_notes) + "\n")
-                    notes = np.random.randint(0, 24, size=nb_notes, dtype='int64')
+                    notes = numpy.random.randint(0, 24, size=nb_notes, dtype='int64')
                     fichier_exemplaire.write(' '.join([str(n) for n in notes]))
     except:
         print("Les exemplaires ont deja ete crees. Si vous voulez les creer a nouveau, supprimer le dossier exemplaires.")
-
 
 if __name__ == '__main__':
     create_partition()
