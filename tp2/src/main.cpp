@@ -15,7 +15,7 @@
 static
 void print_fingers(std::vector<unsigned int> fingers) {
   for (unsigned f : fingers) {
-  std::cout << f << " ";
+    std::cout << f << " ";
   }
 
   std::cout << std::endl;
@@ -29,7 +29,8 @@ void show_help(FILE* f, const char* exec_name) {
   fprintf(f, "  --dynamic          use dynamic programming algorithm\n");
   fprintf(f, "  --search           use neighbors searching algorithm\n");
   fprintf(f, "  --benchmark        print execution time in milliseconds\n");
-  fprintf(f, "  --results          print computed results\n");
+  fprintf(f, "  --solution         print computed solution\n");
+  fprintf(f, "  --cost             print solution's cost\n");
   fprintf(f, "  --iterations N     the number of iterations for searching algorithm\n");
   fprintf(f, "  --song FILE        the song file to run the algorithm\n");
   fprintf(f, "  --keys FILE        the transitions cost file to run the algorithm\n");
@@ -85,7 +86,8 @@ int main(int argc, char** argv) {
   bool use_dynamic = false;
   bool use_search = false;
   bool print_benchmark = false;
-  bool print_results = false;
+  bool print_solution = false;
+  bool print_cost = false;
   int use_opt_count = 0;
   int iterations = 10000;
   std::string file_song = "songs/fur_elise.txt";
@@ -104,8 +106,10 @@ int main(int argc, char** argv) {
       use_opt_count++;
     } else if (strcmp("--benchmark", argv[i]) == 0) {
       print_benchmark = true;
-     } else if (strcmp("--results", argv[i]) == 0) {
-      print_results = true;     
+    } else if (strcmp("--solution", argv[i]) == 0) {
+      print_solution = true;     
+    } else if (strcmp("--cost", argv[i]) == 0) {
+      print_cost = true;     
     } else if (strcmp("--iterations", argv[i]) == 0) {
       if (i > argc - 1) {
         fail_missing_arg(exec_name, argv[i]);
@@ -185,14 +189,15 @@ int main(int argc, char** argv) {
     unsigned long long elapsed;
     elapsed = (end.tv_sec - start.tv_sec) * 1000000000;
     elapsed += (end.tv_nsec - start.tv_nsec);
-    printf("%lld\n", elapsed);
+    printf("%.6f\n", ((float) elapsed) / ((float) 10e6));
   }
 
-  if (print_results) {
-    std::cout << "fingers: ";
+  if (print_solution) {
     print_fingers(fingers);
-    std::cout << std::endl;
-    std::cout << "cost: " << cost << std::endl;
+  }
+
+  if (print_cost) {
+    std::cout << cost << std::endl;
   }
 
   delete algo;
