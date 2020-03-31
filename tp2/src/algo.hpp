@@ -12,6 +12,7 @@ namespace tp {
 class algo {
   public:
     algo(notes n, transitions t);
+    virtual ~algo();
     virtual std::pair<unsigned int, std::vector<unsigned int>> run() = 0;
   protected:
     notes notes_;

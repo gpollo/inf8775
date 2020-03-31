@@ -9,4 +9,6 @@ namespace tp {
 
 algo::algo(notes n, transitions t) : notes_(n), transitions_(t) {}
 
+algo::~algo() {}
+
 } /* namespace tp */

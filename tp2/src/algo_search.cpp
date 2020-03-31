@@ -18,18 +18,13 @@ std::pair<unsigned int, std::vector<unsigned int>> algo_search::run() {
   }
 
   auto [best_cost, best_fingers] = algo_greedy_.run();
-  std::cout << best_cost << " " << best_fingers.size() << std::endl;
   
   for (unsigned int i = 0; i < iterations_; i++) {
-//    auto [next_cost, next_fingers] = run(best_fingers, rand() % (best_fingers.size() / 2 - 2) + 1);
-    auto [next_cost, next_fingers] = run(best_fingers, best_fingers.size()-1);
+    auto [next_cost, next_fingers] = run(best_fingers, rand() % (best_fingers.size() - 1) + 1);
 
-    std::cout << next_cost << std::endl;
     if (next_cost <= best_cost) {
       best_cost = next_cost;
       best_fingers = next_fingers;
-
-      std::cout << next_cost << " " << next_fingers.size() << std::endl;
     }
   }
 
@@ -53,7 +48,7 @@ std::pair<unsigned int, std::vector<unsigned int>> algo_search::run(std::vector<
   unsigned int total_cost = 0;
   std::vector<unsigned int> results;
 
-  for (unsigned int i = 1; i < fingers.size(); i++) {
+for (unsigned int i = 1; i < until; i++) {
     results.push_back(f1);
 
     n2 = *notes_[i];
@@ -70,11 +65,10 @@ std::pair<unsigned int, std::vector<unsigned int>> algo_search::run(std::vector<
   total_cost += transitions_.cost(n1, f1, n2, f2);
   n1 = n2;
   f1 = f2;
-  std::cout << f1 << std::endl;
 
-  for (unsigned int i = fingers.size() + 1; i < notes_.size(); i++) {
+  for (unsigned int i = until + 1; i < notes_.size(); i++) {
     results.push_back(f1);
-std::cout << "tabarnak" << std::endl;
+
     n2 = *notes_[i];
     f2 = transitions_.best(n1, f1, n2);
     total_cost += transitions_.cost(n1, f1, n2, f2);
