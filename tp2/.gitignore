@@ -6,3 +6,6 @@ exemplaires/
 
 # libreoffice lock files
 .~lock*
+
+# generated remise
+*_tp2.zip
