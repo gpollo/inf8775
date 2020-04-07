@@ -3,12 +3,15 @@
 #include <settings.hpp>
 
 #include <algorithm>
+#include <optional>
 #include <set>
+
+#include <iostream>
 
 namespace tp {
 
 chromosome::chromosome(settings& settings, const population& pop)
-  : settings_(settings), population_(pop) {
+  : settings_(settings), population_(pop), cached_(false), cached_cost_(0) {
 
   std::vector<std::pair<unsigned int, unsigned int>> relations;
   relations.insert(relations.begin(), population_.relations().begin(), population_.relations().end());
@@ -21,7 +24,7 @@ chromosome::chromosome(settings& settings, const population& pop)
 }
 
 chromosome::chromosome(settings& settings, const population& pop, const std::set<std::pair<unsigned int, unsigned int>>& isol)
-  : settings_(settings), population_(pop), isolations_(isol) {}
+  : settings_(settings), population_(pop), isolations_(isol), cached_(false), cached_cost_(0) {}
 
 const std::set<std::pair<unsigned int, unsigned int>>& chromosome::isolations() const {
   return isolations_;
@@ -43,6 +46,16 @@ std::pair<chromosome*, chromosome*> chromosome::cross(const chromosome* other) c
   chromosome* child2 = new chromosome(settings_, population_, start);
 
   for (const auto& isolation : combined) {
+    if (child1->isolations_.find(isolation) != child1->isolations_.end()) {
+       child2->isolations_.insert(isolation);
+       continue;
+    }
+
+    if (child2->isolations_.find(isolation) != child2->isolations_.end()) {
+       child1->isolations_.insert(isolation);
+       continue;
+    }
+
     if (settings_.binary_random()) {
       child1->isolations_.insert(isolation);
     } else {
@@ -53,29 +66,28 @@ std::pair<chromosome*, chromosome*> chromosome::cross(const chromosome* other) c
   return std::make_pair(child1, child2);
 }
 
-chromosome* chromosome::mutate() const {
+chromosome* chromosome::mutate(unsigned int add, unsigned int remove, unsigned int update) const {
   std::set<std::pair<unsigned int, unsigned int>> start;
   chromosome* mutation = new chromosome(settings_, population_, start);
-  for (const auto& isolation : isolations_) {
-    mutation->isolations_.insert(isolation);
+  mutation->isolations_.insert(isolations_.begin(), isolations_.end());
+
+  for (int i = 0; i < (int) add; i++) {
+    mutation->add_isolation();
   }
 
-  for (unsigned int i = 0; i < settings_.isolation_mutation_count(); i++) {
-    unsigned int random = settings_.percent_random();
-    if (random < 33) {
-      mutation->add_isolation();
-    } else if (random < 66) {
-      mutation->remove_isolation();
-    } else {
-      mutation->update_isolation();
-    }
+  for (int i = 0; i < (int) remove; i++) {
+    mutation->remove_isolation();
+  }
+
+  for (int i = 0; i < (int) update; i++) {
+    mutation->update_isolation();
   }
 
   return mutation;
 }
 
-unsigned int chromosome::cost() const {
-  tp::population pop = population_;
+std::optional<unsigned int> chromosome::cost() {
+  tp::population pop(population_);
   for (const auto& isolation : isolations_) {
     pop.remove_relation(isolation.first, isolation.second);
   }
@@ -84,9 +96,9 @@ unsigned int chromosome::cost() const {
 
   float infected_percent = 100 * (((float) pop.infected().size()) / ((float) pop.size()));
   if (infected_percent > 50) {
-    return population_.relations().size();
+    return {};
   }
-
+    
   return isolations_.size();
 }
 
@@ -96,10 +108,16 @@ void chromosome::add_isolation() {
 
   std::vector<std::pair<unsigned int, unsigned int>> available;
   set_difference(r.begin(), r.end(), i.begin(), i.end(), std::inserter(available, available.begin()));
-  isolations_.insert(available[settings_.random_to(available.size() - 1)]);
+  if (available.size() != 0) {
+    isolations_.insert(available[settings_.random_to(available.size() - 1)]);
+  }
 }
 
 void chromosome::remove_isolation() {
+  if (isolations_.size() <= 1) {
+    return;
+  }
+
   auto it = isolations_.begin();
   std::advance(it, settings_.random_to(isolations_.size() - 1));
   isolations_.erase(it);

@@ -12,13 +12,21 @@ namespace tp {
 
 class algorithm {
   public:
-    algorithm(settings& settings, const population& pop);
+    algorithm(bool print_solutions, settings& settings, const population& pop);
     ~algorithm();
     void run();
     void stop();
   private:
-    void evolve();
+    void print_solution(const std::pair<unsigned int, chromosome*>& solution) const;
+    std::pair<unsigned int, chromosome*> evolve();
+    void remove_worst_chromosomes(std::set<chromosome*>& removed, const std::multimap<unsigned int, chromosome*>& costs);
+    void replace_invalid_chromosomes(std::set<chromosome*>& removed, std::set<chromosome*> invalids);
 
+    void cross_random_chromosomes();
+    void mutate_random_chromosome();
+    void mutate_increase_chromosome(chromosome* chromosome);
+
+    const bool print_solutions_;
     std::atomic_bool running_;
     settings& settings_;
     const population& population_;

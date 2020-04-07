@@ -3,9 +3,9 @@
 namespace tp {
 
 settings::settings()
-  : initial_isolation_factor_(0.5), initial_chromosome_count_(200),
+  : initial_isolation_factor_(0.3), chromosome_count_(50),
     virality_(3),
-    cross_count_(50), mutation_count_(10), isolation_mutation_count_(2),
+    cross_count_(10), mutation_count_(40),
     random_device_(), generator_(random_device_()), uniform_(0, 100) {}
 
 bool settings::binary_random() {
@@ -25,8 +25,8 @@ float settings::initial_isolation_factor() const {
   return initial_isolation_factor_;
 }
 
-unsigned int settings::initial_chromosome_count() const {
-  return initial_chromosome_count_;
+unsigned int settings::chromosome_count() const {
+  return chromosome_count_;
 }
 
 unsigned int settings::virality() const {
@@ -39,10 +39,6 @@ unsigned int settings::cross_count() const {
 
 unsigned int settings::mutation_count() const {
   return mutation_count_;
-}
-
-unsigned int settings::isolation_mutation_count() const {
-  return isolation_mutation_count_;
 }
 
 } /* namespace tp */

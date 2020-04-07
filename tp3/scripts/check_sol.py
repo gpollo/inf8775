@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ################################################################################
 #
 # Ce script vérifie si votre solution est valide. C'est le script qui sera
