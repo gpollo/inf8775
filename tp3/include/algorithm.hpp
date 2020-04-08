@@ -6,13 +6,14 @@
 #include <settings.hpp>
 
 #include <atomic>
+#include <chrono>
 #include <set>
 
 namespace tp {
 
 class algorithm {
   public:
-    algorithm(bool print_solutions, settings& settings, const population& pop);
+    algorithm(bool print_solutions, bool print_timestamp, settings& settings, const population& pop);
     ~algorithm();
     void run();
     void stop();
@@ -23,11 +24,14 @@ class algorithm {
     void replace_invalid_chromosomes(std::set<chromosome*>& removed, std::set<chromosome*> invalids);
 
     void cross_random_chromosomes();
-    void mutate_random_chromosome();
+    void mutate_random_chromosomes();
     void mutate_increase_chromosome(chromosome* chromosome);
 
     const bool print_solutions_;
+    const bool print_timestamp_;
     std::atomic_bool running_;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time_;
+
     settings& settings_;
     const population& population_;
     std::set<chromosome*> chromosomes_;

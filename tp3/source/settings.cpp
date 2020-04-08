@@ -3,7 +3,7 @@
 namespace tp {
 
 settings::settings()
-  : initial_isolation_factor_(0.3), chromosome_count_(50),
+  : initial_isolation_factor_(0.3), chromosome_count_(25),
     virality_(3),
     cross_count_(10), mutation_count_(40),
     random_device_(), generator_(random_device_()), uniform_(0, 100) {}

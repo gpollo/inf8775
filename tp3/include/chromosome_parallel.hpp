@@ -19,6 +19,16 @@ class chromosome_costs {
     std::set<chromosome*> invalids_;
 };
 
-} /* namespace tp */
+using mutation_settings = std::tuple<chromosome*, unsigned int, unsigned int, unsigned int>;
+
+class chromosome_mutate {
+  public:
+    void operator()(std::vector<mutation_settings>& settings);
+    const std::vector<chromosome*>& created() const;
+  private:
+    std::vector<chromosome*> created_;
+};
+
+} /* namespace tp::parallel */
 
 #endif /* INCLUDE_CHROMOSOME_PARALLEL_HPP */
