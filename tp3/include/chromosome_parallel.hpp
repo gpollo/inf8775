@@ -19,6 +19,16 @@ class chromosome_costs {
     std::set<chromosome*> invalids_;
 };
 
+using cross_settings = std::pair<chromosome*, chromosome*>;
+
+class chromosome_cross {
+  public:
+    void operator()(std::vector<cross_settings>& settings);
+    const std::vector<chromosome*>& created() const;
+  private:
+    std::vector<chromosome*> created_;   
+};
+
 using mutation_settings = std::tuple<chromosome*, unsigned int, unsigned int, unsigned int>;
 
 class chromosome_mutate {

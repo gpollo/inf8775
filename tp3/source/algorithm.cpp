@@ -77,10 +77,7 @@ void algorithm::stop() {
 
 std::pair<unsigned int, chromosome*> algorithm::evolve() {
   mutate_random_chromosomes();
-
-  for (unsigned int n = 0; n < settings_.cross_count(); n++) {
-    cross_random_chromosomes();
-  }
+  cross_random_chromosomes();
 
   std::vector<chromosome*> chromosomes_vector(chromosomes_.begin(), chromosomes_.end());
   parallel::chromosome_costs chromosome_costs;
@@ -126,22 +123,30 @@ void algorithm::replace_invalid_chromosomes(std::set<chromosome*>& removed, std:
 }
 
 void algorithm::cross_random_chromosomes() {
-  unsigned int n_i = 0, n_j = 0;
-  while (n_i != n_j) {
-    n_i = settings_.random_to(chromosomes_.size() - 1);
-    n_j = settings_.random_to(chromosomes_.size() - 1);
+  std::vector<parallel::cross_settings> cross_settings;
+  for (unsigned int n = 0; n < settings_.cross_count(); n++) {
+    unsigned int n_i = 0, n_j = 0;
+    while (n_i != n_j) {
+      n_i = settings_.random_to(chromosomes_.size() - 1);
+      n_j = settings_.random_to(chromosomes_.size() - 1);
+    }
+
+    auto it_i = chromosomes_.begin();
+    auto it_j = chromosomes_.begin();
+    std::advance(it_i, n_i);
+    std::advance(it_j, n_j);
+    auto i = *it_i;
+    auto j = *it_j;
+
+    cross_settings.emplace_back(i, j);
   }
 
-  auto it_i = chromosomes_.begin();
-  auto it_j = chromosomes_.begin();
-  std::advance(it_i, n_i);
-  std::advance(it_j, n_j);
-  auto i = *it_i;
-  auto j = *it_j;
+  parallel::chromosome_cross chromosome_cross;
+  chromosome_cross(cross_settings);
 
-  auto [n1, n2] = i->cross(j);
-  chromosomes_.insert(n1);
-  chromosomes_.insert(n2);
+  for (auto chromosome : chromosome_cross.created()) {
+    chromosomes_.insert(chromosome);
+  }
 }
 
 void algorithm::mutate_random_chromosomes() {

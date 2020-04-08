@@ -66,6 +66,42 @@ const std::set<chromosome*> chromosome_costs::invalids() const {
   return invalids_;
 }
 
+void chromosome_cross::operator()(std::vector<cross_settings>& settings) {
+  tbb::concurrent_vector<chromosome*> concurrent_created;
+
+  tbb::parallel_for(
+    tbb::blocked_range<std::vector<cross_settings>::iterator>(
+      settings.begin(),
+      settings.end()
+    ),
+    [&] (auto range) {
+      std::for_each(
+        range.begin(),
+        range.end(),
+        [&] (auto settings) {
+          chromosome* c1 = std::get<0>(settings);
+          chromosome* c2 = std::get<1>(settings);
+          auto [n1, n2] = c1->cross(c2);
+          concurrent_created.push_back(n1);
+          concurrent_created.push_back(n2);
+        }
+      );
+    }
+  );
+
+  std::for_each(
+    concurrent_created.begin(),
+    concurrent_created.end(),
+    [&] (auto result) {
+      created_.push_back(result);
+    }
+  );
+}
+
+const std::vector<chromosome*>& chromosome_cross::created() const {
+  return created_;
+}
+
 void chromosome_mutate::operator()(std::vector<mutation_settings>& settings) {
   tbb::concurrent_vector<chromosome*> concurrent_created;
 
