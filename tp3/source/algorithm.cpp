@@ -162,7 +162,7 @@ void algorithm::mutate_random_chromosomes() {
 }
 
 void algorithm::mutate_increase_chromosome(chromosome* chromosome) {
-  unsigned int add = settings_.random_to(200);
+  unsigned int add = settings_.random_to(20);
   unsigned int remove = 0;
   unsigned int update = 0;
   chromosomes_.insert(chromosome->mutate(add, remove, update));

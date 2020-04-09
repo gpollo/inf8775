@@ -1,9 +1,11 @@
 #include <chromosome.hpp>
+#include <greedy.hpp>
 #include <population.hpp>
 #include <settings.hpp>
 
 #include <algorithm>
 #include <optional>
+#include <iostream>
 
 namespace tp {
 
@@ -13,10 +15,14 @@ chromosome::chromosome(settings& settings, const population& pop)
   const type::relations& relations = population_.relations();
   std::vector<type::relation> relations_vec(relations.begin(), relations.end());
 
-  int isolation_count = relations.size() * settings_.initial_isolation_factor();
-  while (isolations_.size() < isolation_count) {
-    isolations_.insert(settings_.random_from(relations_vec));
-  }
+  greedy greedy(settings_, population_);
+  auto solutions = greedy.run();
+  isolations_.insert(solutions.begin(), solutions.end());
+
+  //int isolation_count = relations.size() * settings_.initial_isolation_factor();
+  //while (isolations_.size() < isolation_count) {
+  //  isolations_.insert(settings_.random_from(relations_vec));
+  //}
 }
 
 chromosome::chromosome(settings& settings, const population& pop, const type::relations& isolations)

@@ -36,7 +36,6 @@ class population {
     const type::persons& infected() const;
     const type::persons* infected(type::person i) const;
 
-
     float run(unsigned int virality, const type::relations& isolations) const;
     unsigned int run_iteration(unsigned int virality);
 

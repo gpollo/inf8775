@@ -5,8 +5,6 @@
 
 #include <set>
 
-#include <iostream>
-
 namespace tp {
 
 class mock_settings : public settings {

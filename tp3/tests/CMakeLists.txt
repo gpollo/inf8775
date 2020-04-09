@@ -1,4 +1,5 @@
 set(TEST_SOURCE_FILES
+    greedy_test.cpp
     population_test.cpp
     chromosome_test.cpp
 )
