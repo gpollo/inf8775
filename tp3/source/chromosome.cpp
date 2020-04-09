@@ -87,14 +87,7 @@ chromosome* chromosome::mutate(unsigned int add, unsigned int remove, unsigned i
 }
 
 std::optional<unsigned int> chromosome::cost() {
-  tp::population pop(population_);
-  for (const auto& isolation : isolations_) {
-    pop.remove_relation(isolation.first, isolation.second);
-  }
-
-  while (pop.run_iteration(settings_.virality()) != 0) {}
-
-  float infected_percent = 100 * (((float) pop.infected().size()) / ((float) pop.size()));
+  float infected_percent = population_.run(settings_.virality(), isolations_);
   if (infected_percent > 50) {
     return {};
   }

@@ -152,6 +152,17 @@ const std::set<unsigned int>* population::infected(unsigned int i) const {
   return &it->second;
 }
 
+float population::run(unsigned int virality, const std::set<std::pair<unsigned int, unsigned int>>& isolations) const {
+  population pop(*this);
+  for (const auto& isolation : isolations) {
+    pop.remove_relation(isolation.first, isolation.second);
+  }
+
+  while (pop.run_iteration(virality) != 0) {}
+
+  return 100 * (((float) pop.infected().size()) / ((float) pop.size()));
+}
+
 unsigned int population::run_iteration(unsigned int virality) {
   std::set<unsigned int> new_cases;
 

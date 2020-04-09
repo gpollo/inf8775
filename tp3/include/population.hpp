@@ -16,7 +16,7 @@ class population {
 
     void add_relation(unsigned int i, unsigned int j);
     void add_infected(unsigned int i);
-    void remove_relation(unsigned int, unsigned int j);
+    void remove_relation(unsigned int i, unsigned int j);
 
     const std::set<std::pair<unsigned int, unsigned int>>& relations() const;
     const std::set<unsigned int>* relations(unsigned int i) const;
@@ -24,6 +24,8 @@ class population {
     const std::set<unsigned int>& infected() const;
     const std::set<unsigned int>* infected(unsigned int i) const;
 
+
+    float run(unsigned int virality, const std::set<std::pair<unsigned int, unsigned int>>& isolations) const;
     unsigned run_iteration(unsigned int virality);
 
   private:
