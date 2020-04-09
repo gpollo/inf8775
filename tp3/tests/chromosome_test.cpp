@@ -5,12 +5,18 @@
 
 #include <set>
 
+#include <iostream>
+
 namespace tp {
 
 class mock_settings : public settings {
   public:
-    virtual unsigned virality() const {
+    virtual unsigned int virality() const {
       return 2;
+    }
+
+    virtual float initial_isolation_factor() const {
+      return 0.5;
     }
 };
 
@@ -23,14 +29,14 @@ tp::population create_population() {
   pop.add_infected(0);
   pop.add_infected(1);
 
-  pop.add_relation(0, 2);
-  pop.add_relation(0, 3);
-  pop.add_relation(1, 2);
-  pop.add_relation(1, 5);
-  pop.add_relation(2, 3);
-  pop.add_relation(2, 4);
-  pop.add_relation(3, 4);
-  pop.add_relation(3, 5);
+  pop.add_relation({0, 2});
+  pop.add_relation({0, 3});
+  pop.add_relation({1, 2});
+  pop.add_relation({1, 5});
+  pop.add_relation({2, 3});
+  pop.add_relation({2, 4});
+  pop.add_relation({3, 4});
+  pop.add_relation({3, 5});
 
   return pop;
 }
@@ -54,15 +60,15 @@ TEST_CASE("Cost of chromosome is correctly computed") {
 
   std::set<std::pair<unsigned int, unsigned int>> i1{};
   tp::chromosome c1(settings, population, i1);
-  REQUIRE(c1.cost() == 8);
+  REQUIRE(c1.cost() == std::nullopt);
 
   std::set<std::pair<unsigned int, unsigned int>> i2{{3, 5}};
   tp::chromosome c2(settings, population, i2);
-  REQUIRE(c2.cost() == 8);
+  REQUIRE(c2.cost() == std::nullopt);
 
   std::set<std::pair<unsigned int, unsigned int>> i3{{3, 4}, {3, 5}};
   tp::chromosome c3(settings, population, i3);
-  REQUIRE(c3.cost() == 8);
+  REQUIRE(c3.cost() == std::nullopt);
 
   std::set<std::pair<unsigned int, unsigned int>> i4{{2, 3}, {3, 4}, {3, 5}};
   tp::chromosome c4(settings, population, i4);

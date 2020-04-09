@@ -5,9 +5,6 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
-#include <map>
-#include <set>
 #include <variant>
 
 namespace tp {
@@ -27,21 +24,21 @@ std::variant<population, std::string> population::from_file(const std::filesyste
 
   population p(n);
 
-  for (unsigned int i = 0; i < n; i++) {
-    for (unsigned int j = 0; j < n; j++) {
+  for (type::person i = 0; i < n; i++) {
+    for (type::person j = 0; j < n; j++) {
       unsigned int r;
       if (!(file >> r)) {
         return strerror(errno);
       }
 
       if (r) {
-        p.add_relation(i, j);
+        p.add_relation({i, j});
       }
     }
   }
 
-  for (unsigned int i = 0; i < m; i++) {
-    unsigned int j;
+  for (auto i = 0; i < m; i++) {
+    type::person j;
     if (!(file >> j)) {
       return strerror(errno);
     }
@@ -56,7 +53,9 @@ unsigned int population::size() const {
   return size_;
 }
 
-void population::add_relation(unsigned int i, unsigned int j) {
+void population::add_relation(const type::relation& relation) {
+  auto [i, j] = relation;
+
   if (i == j) {
     return;
   }
@@ -71,7 +70,7 @@ void population::add_relation(unsigned int i, unsigned int j) {
 
   auto i_it = relations_.find(i);
   if (i_it == relations_.end()) {
-    auto inserted = relations_.emplace(i, std::set<unsigned int>{});
+    auto inserted = relations_.emplace(i, type::persons{});
     inserted.first->second.insert(j);
   } else {
     i_it->second.insert(j);
@@ -79,22 +78,24 @@ void population::add_relation(unsigned int i, unsigned int j) {
 
   auto j_it = relations_.find(j);
   if (j_it == relations_.end()) {
-    auto inserted = relations_.emplace(j, std::set<unsigned int>{});
+    auto inserted = relations_.emplace(j, type::persons{});
     inserted.first->second.insert(i);
   } else {
     j_it->second.insert(i);
   }
 
-  update_infected(i, j);
+  update_infected({i, j});
 }
 
-void population::add_infected(unsigned int i) {
+void population::add_infected(type::person i) {
   if (all_infected_.insert(i).second) {
     update_infected(i);
   }
 }
 
-void population::remove_relation(unsigned int i, unsigned int j) {
+void population::remove_relation(const type::relation& relation) {
+  auto [i, j] = relation;
+
   if (i == j) {
     return;
   }
@@ -123,14 +124,14 @@ void population::remove_relation(unsigned int i, unsigned int j) {
     infected_relations_it_j->second.erase(i);
   }
 
-  all_relations_.erase(std::make_pair(i, j));
+  all_relations_.erase({i, j});
 }
 
-const std::set<std::pair<unsigned int, unsigned int>>& population::relations() const {
+const type::relations& population::relations() const {
   return all_relations_;
 }
 
-const std::set<unsigned int>* population::relations(unsigned int i) const {
+const type::persons* population::relations(type::person i) const {
   auto it = relations_.find(i);
   if (it == relations_.end()) {
     return nullptr;
@@ -139,11 +140,11 @@ const std::set<unsigned int>* population::relations(unsigned int i) const {
   return &it->second;
 }
 
-const std::set<unsigned int>& population::infected() const {
+const type::persons& population::infected() const {
   return all_infected_;
 }
 
-const std::set<unsigned int>* population::infected(unsigned int i) const {
+const type::persons* population::infected(type::person i) const {
   auto it = infected_relations_.find(i);
   if (it == infected_relations_.end()) {
     return nullptr;
@@ -152,10 +153,10 @@ const std::set<unsigned int>* population::infected(unsigned int i) const {
   return &it->second;
 }
 
-float population::run(unsigned int virality, const std::set<std::pair<unsigned int, unsigned int>>& isolations) const {
+float population::run(unsigned int virality, const type::relations& isolations) const {
   population pop(*this);
   for (const auto& isolation : isolations) {
-    pop.remove_relation(isolation.first, isolation.second);
+    pop.remove_relation(isolation);
   }
 
   while (pop.run_iteration(virality) != 0) {}
@@ -164,10 +165,10 @@ float population::run(unsigned int virality, const std::set<std::pair<unsigned i
 }
 
 unsigned int population::run_iteration(unsigned int virality) {
-  std::set<unsigned int> new_cases;
+  type::persons new_cases;
 
-  for (unsigned int i = 0; i < size_; i++) {
-    if (all_infected_.find(i) != all_infected_.end()) {
+  for (type::person i = 0; i < size_; i++) {
+    if (all_infected_.contains(i)) {
       continue;
     }
 
@@ -188,21 +189,23 @@ unsigned int population::run_iteration(unsigned int virality) {
   return new_cases.size();
 }
 
-void population::update_infected(unsigned int i, unsigned int j) {
-  if (all_infected_.find(i) != all_infected_.end()) {
+void population::update_infected(const type::relation& relation) {
+  auto [i, j] = relation;
+
+  if (all_infected_.contains(i)) {
     auto it = infected_relations_.find(j);
     if (it == infected_relations_.end()) {
-      auto inserted = infected_relations_.emplace(j, std::set<unsigned int>{});
+      auto inserted = infected_relations_.emplace(j, type::persons{});
       inserted.first->second.insert(i);
     } else {
       it->second.insert(i);
     }
   }
 
-  if (all_infected_.find(j) != all_infected_.end()) {
+  if (all_infected_.contains(j)) {
     auto it = infected_relations_.find(i);
     if (it == infected_relations_.end()) {
-      auto inserted = infected_relations_.emplace(i, std::set<unsigned int>{});
+      auto inserted = infected_relations_.emplace(i, type::persons{});
       inserted.first->second.insert(j);
     } else {
       it->second.insert(j);
@@ -210,7 +213,7 @@ void population::update_infected(unsigned int i, unsigned int j) {
   }
 }
 
-void population::update_infected(unsigned int i) {
+void population::update_infected(type::person i) {
   auto relations_it = relations_.find(i);
   if (relations_it == relations_.end()) {
     return;
@@ -219,7 +222,7 @@ void population::update_infected(unsigned int i) {
   for (const auto& j : relations_it->second) {
     auto j_it = infected_relations_.find(j);
     if (j_it == infected_relations_.end()) {
-      auto inserted = infected_relations_.emplace(j, std::set<unsigned int>{});
+      auto inserted = infected_relations_.emplace(j, type::persons{});
       inserted.first->second.insert(i);
     } else {
       j_it->second.insert(i);

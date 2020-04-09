@@ -2,6 +2,8 @@
 #define INCLUDE_SETTINGS_HPP
 
 #include <random>
+#include <utility>
+#include <vector>
 
 namespace tp {
 
@@ -11,6 +13,12 @@ class settings {
     virtual bool binary_random();
     virtual unsigned int percent_random();
     virtual unsigned int random_to(unsigned int upper);
+    virtual std::pair<unsigned int, unsigned int> random_pair(unsigned max);
+
+    template <class V>
+    const V& random_from(const std::vector<V>& container) {
+      return container[random_to(container.size() - 1)];
+    }
 
     virtual float initial_isolation_factor() const;
     virtual unsigned int chromosome_count() const;

@@ -6,6 +6,18 @@
 #include <set>
 #include <variant>
 
+namespace tp::type {
+
+// TODO: maybe use unordered_set or/and unordered_map
+
+using person = unsigned int;
+using persons = std::set<person>;
+using adjacents = std::map<person, std::set<person>>;
+using relation = std::pair<person, person>;
+using relations = std::set<relation>;
+
+} /* namespace tp::type */
+
 namespace tp {
 
 class population {
@@ -14,30 +26,29 @@ class population {
     static std::variant<population, std::string> from_file(const std::filesystem::path& path);
     unsigned int size() const;
 
-    void add_relation(unsigned int i, unsigned int j);
-    void add_infected(unsigned int i);
-    void remove_relation(unsigned int i, unsigned int j);
+    void add_relation(const type::relation& relation);
+    void add_infected(type::person i);
+    void remove_relation(const type::relation& relation);
 
-    const std::set<std::pair<unsigned int, unsigned int>>& relations() const;
-    const std::set<unsigned int>* relations(unsigned int i) const;
+    const type::relations& relations() const;
+    const type::persons* relations(type::person i) const;
 
-    const std::set<unsigned int>& infected() const;
-    const std::set<unsigned int>* infected(unsigned int i) const;
+    const type::persons& infected() const;
+    const type::persons* infected(type::person i) const;
 
 
-    float run(unsigned int virality, const std::set<std::pair<unsigned int, unsigned int>>& isolations) const;
-    unsigned run_iteration(unsigned int virality);
+    float run(unsigned int virality, const type::relations& isolations) const;
+    unsigned int run_iteration(unsigned int virality);
 
   private:
-    void update_infected(unsigned int i, unsigned int j);
-    void update_infected(unsigned int i);
+    void update_infected(const type::relation& relation);
+    void update_infected(type::person i);
 
-    // TODO: maybe use unordered_set or/and unordered_map
     const unsigned int size_;
-    std::map<unsigned int, std::set<unsigned int>> relations_;
-    std::map<unsigned int, std::set<unsigned int>> infected_relations_;
-    std::set<std::pair<unsigned int, unsigned int>> all_relations_;
-    std::set<unsigned int> all_infected_;
+    type::adjacents relations_;
+    type::adjacents infected_relations_;
+    type::relations all_relations_;
+    type::persons all_infected_;
 };
 
 } /* namespace tp */

@@ -10,17 +10,17 @@ tp::population create_population() {
     pop.add_infected(3);
     pop.add_infected(6);
 
-    pop.add_relation(0, 1);
-    pop.add_relation(0, 2);
-    pop.add_relation(0, 3);
-    pop.add_relation(0, 4);
-    pop.add_relation(0, 5);
-    pop.add_relation(1, 2);
-    pop.add_relation(1, 3);
-    pop.add_relation(3, 4);
+    pop.add_relation({0, 1});
+    pop.add_relation({0, 2});
+    pop.add_relation({0, 3});
+    pop.add_relation({0, 4});
+    pop.add_relation({0, 5});
+    pop.add_relation({1, 2});
+    pop.add_relation({1, 3});
+    pop.add_relation({3, 4});
 
-    pop.remove_relation(1, 3);
-    pop.remove_relation(4, 3);
+    pop.remove_relation({1, 3});
+    pop.remove_relation({4, 3});
 
     return pop;
 }
@@ -101,14 +101,14 @@ TEST_CASE("Infection is correctly propagated") {
     pop.add_infected(0);
     pop.add_infected(1);
 
-    pop.add_relation(0, 2);
-    pop.add_relation(0, 3);
-    pop.add_relation(1, 2);
-    pop.add_relation(1, 5);
-    pop.add_relation(2, 3);
-    pop.add_relation(2, 4);
-    pop.add_relation(3, 4);
-    pop.add_relation(3, 5);
+    pop.add_relation({0, 2});
+    pop.add_relation({0, 3});
+    pop.add_relation({1, 2});
+    pop.add_relation({1, 5});
+    pop.add_relation({2, 3});
+    pop.add_relation({2, 4});
+    pop.add_relation({3, 4});
+    pop.add_relation({3, 5});
 
     REQUIRE(pop.infected().size() == 2);
     REQUIRE(pop.infected().find(0) != pop.infected().end());

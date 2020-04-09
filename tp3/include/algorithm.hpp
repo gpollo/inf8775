@@ -9,6 +9,14 @@
 #include <chrono>
 #include <set>
 
+namespace tp::type {
+
+using solution = std::pair<unsigned int, chromosome*>;
+using chromosome_costs = std::multimap<unsigned int, tp::chromosome*>;
+using chromosomes = std::set<tp::chromosome*>;
+
+} /* namespace tp::type */
+
 namespace tp {
 
 class algorithm {
@@ -18,10 +26,10 @@ class algorithm {
     void run();
     void stop();
   private:
-    void print_solution(const std::pair<unsigned int, chromosome*>& solution) const;
-    std::pair<unsigned int, chromosome*> evolve();
-    void remove_worst_chromosomes(std::set<chromosome*>& removed, const std::multimap<unsigned int, chromosome*>& costs);
-    void replace_invalid_chromosomes(std::set<chromosome*>& removed, std::set<chromosome*> invalids);
+    void print_solution(const type::solution& solution) const;
+    type::solution evolve();
+    void remove_worst_chromosomes(type::chromosomes& removed, const type::chromosome_costs& costs);
+    void replace_invalid_chromosomes(type::chromosomes& removed, const type::chromosomes& invalids);
 
     void cross_random_chromosomes();
     void mutate_random_chromosomes();
@@ -34,7 +42,7 @@ class algorithm {
 
     settings& settings_;
     const population& population_;
-    std::set<chromosome*> chromosomes_;
+    type::chromosomes chromosomes_;
 };
 
 } /* namespace tp */

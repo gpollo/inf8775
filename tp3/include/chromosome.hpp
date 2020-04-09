@@ -6,15 +6,16 @@
 
 #include <optional>
 #include <set>
+#include <map>
 
 namespace tp {
 
 class chromosome {
   public:
     chromosome(settings& settings, const population& pop);
-    chromosome(settings& settings, const population& pop, const std::set<std::pair<unsigned int, unsigned int>>& isol);
+    chromosome(settings& settings, const population& pop, const type::relations& isolations);
 
-    const std::set<std::pair<unsigned int, unsigned int>>& isolations() const;
+    const type::relations& isolations() const;
     std::pair<chromosome*, chromosome*> cross(const chromosome* other) const;
     chromosome* mutate(unsigned int add, unsigned int remove, unsigned int update) const;
     std::optional<unsigned int> cost();
@@ -25,9 +26,7 @@ class chromosome {
 
     settings& settings_;
     const population& population_;
-    std::set<std::pair<unsigned int, unsigned int>> isolations_;
-    bool cached_;
-    unsigned int cached_cost_;
+    type::relations isolations_;
 };
 
 } /* namespace tp */

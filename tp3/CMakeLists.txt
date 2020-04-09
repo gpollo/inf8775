@@ -5,8 +5,8 @@ project(tp3 LANGUAGES CXX)
 add_executable(pandemic)
 add_executable(pandemic_test)
 
-set_property(TARGET pandemic PROPERTY CXX_STANDARD 17)
-set_property(TARGET pandemic_test PROPERTY CXX_STANDARD 17)
+set_property(TARGET pandemic PROPERTY CXX_STANDARD 20)
+set_property(TARGET pandemic_test PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(pandemic -ltbb)
 target_link_libraries(pandemic_test -ltbb)

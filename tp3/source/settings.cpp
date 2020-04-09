@@ -1,5 +1,9 @@
 #include <settings.hpp>
 
+#include <random>
+#include <utility>
+#include <vector>
+
 namespace tp {
 
 settings::settings()
@@ -19,6 +23,16 @@ unsigned int settings::percent_random() {
 unsigned int settings::random_to(unsigned int upper) {
   std::uniform_int_distribution<unsigned int> uniform(0, upper);
   return uniform(generator_);
+}
+
+std::pair<unsigned int, unsigned int> settings::random_pair(unsigned max) {
+  unsigned int i = 0, j = 0;
+  while (i == j) {
+    i = random_to(max);
+    j = random_to(max);
+  }
+  
+  return {i, j};
 }
 
 float settings::initial_isolation_factor() const {

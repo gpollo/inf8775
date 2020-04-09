@@ -6,7 +6,6 @@
 
 #include <chrono>
 #include <iostream>
-#include <map>
 
 namespace tp {
 
@@ -14,7 +13,7 @@ algorithm::algorithm(bool print_solutions, bool print_timestamp, settings& setti
   : print_solutions_(print_solutions), print_timestamp_(print_timestamp), 
     running_(false), settings_(settings), population_(pop) {
 
-  for (unsigned int i = 0; i < settings_.chromosome_count(); i++) {
+  for (auto i = 0; i < settings_.chromosome_count(); i++) {
     chromosomes_.insert(new chromosome(settings_, population_));
   }
 }
@@ -30,7 +29,7 @@ void algorithm::run() {
   start_time_ = std::chrono::high_resolution_clock::now();
 
   bool best_is_set = false;
-  std::pair<unsigned int, chromosome*> best;
+  type::solution best;
 
   while(running_) {
     auto current = evolve();
@@ -54,20 +53,18 @@ void algorithm::run() {
   print_solution(best);
 }
 
-void algorithm::print_solution(const std::pair<unsigned int, chromosome*>& solution) const {
+void algorithm::print_solution(const type::solution& solution) const {
   if (print_solutions_) {
     std::string output;
     for (auto isolation : solution.second->isolations()) {
       output += std::to_string(isolation.first) + " " + std::to_string(isolation.second) + "\n";
     }
     std::cout << std::endl << output;
+  } else if  (print_timestamp_) {
+    auto elapsed = std::chrono::high_resolution_clock::now() - start_time_;
+    std::cout << solution.first << " " << elapsed.count() << std::endl;
   } else {
-    if (print_timestamp_) {
-      auto elapsed = std::chrono::high_resolution_clock::now() - start_time_;
-      std::cout << solution.first << " " << elapsed.count() << std::endl;
-    } else {
-      std::cout << solution.first << std::endl;
-    }
+    std::cout << solution.first << std::endl;
   }
 }
 
@@ -75,7 +72,7 @@ void algorithm::stop() {
   running_ = false;
 }
 
-std::pair<unsigned int, chromosome*> algorithm::evolve() {
+type::solution algorithm::evolve() {
   mutate_random_chromosomes();
   cross_random_chromosomes();
 
@@ -83,23 +80,19 @@ std::pair<unsigned int, chromosome*> algorithm::evolve() {
   parallel::chromosome_costs chromosome_costs;
   chromosome_costs(chromosomes_vector, population_.relations().size());
 
-  std::set<chromosome*> removed;
+  type::chromosomes removed;
   remove_worst_chromosomes(removed, chromosome_costs.costs());
   replace_invalid_chromosomes(removed, chromosome_costs.invalids());
   
-  for (auto chromosome : removed) {
-    delete chromosome;
-  }
-
+  std::for_each(removed.begin(), removed.end(), std::default_delete<chromosome>());
   if (removed.size() == chromosomes_vector.size()) {
-    return std::make_pair(0, nullptr);
+    return {0, nullptr};
   }
 
-  auto best = chromosome_costs.costs().begin();
-  return std::make_pair(best->first, best->second);
+  return *chromosome_costs.costs().begin();
 }
 
-void algorithm::remove_worst_chromosomes(std::set<chromosome*>& removed, const std::multimap<unsigned int, chromosome*>& costs) {
+void algorithm::remove_worst_chromosomes(type::chromosomes& removed, const type::chromosome_costs& costs) {
   auto it = costs.rbegin();
   while (chromosomes_.size() > settings_.chromosome_count()) {
     auto chromosome = (it++)->second;
@@ -108,7 +101,7 @@ void algorithm::remove_worst_chromosomes(std::set<chromosome*>& removed, const s
   }
 }
 
-void algorithm::replace_invalid_chromosomes(std::set<chromosome*>& removed, std::set<chromosome*> invalids) {
+void algorithm::replace_invalid_chromosomes(type::chromosomes& removed, const type::chromosomes& invalids) {
   for (auto invalid : invalids) {
     auto it = chromosomes_.find(invalid);
     if (it == chromosomes_.end()) {
@@ -122,39 +115,38 @@ void algorithm::replace_invalid_chromosomes(std::set<chromosome*>& removed, std:
   }
 }
 
-void algorithm::cross_random_chromosomes() {
-  std::vector<parallel::cross_settings> cross_settings;
-  for (unsigned int n = 0; n < settings_.cross_count(); n++) {
-    unsigned int n_i = 0, n_j = 0;
-    while (n_i != n_j) {
-      n_i = settings_.random_to(chromosomes_.size() - 1);
-      n_j = settings_.random_to(chromosomes_.size() - 1);
-    }
 
+void algorithm::cross_random_chromosomes() {
+  if (chromosomes_.size() < 2) {
+    return;
+  }
+
+  std::vector<parallel::cross_settings> cross_settings;
+  for (auto n = 0; n < settings_.cross_count(); n++) {
+    auto [i, j] = settings_.random_pair(chromosomes_.size() - 1);
     auto it_i = chromosomes_.begin();
     auto it_j = chromosomes_.begin();
-    std::advance(it_i, n_i);
-    std::advance(it_j, n_j);
-    auto i = *it_i;
-    auto j = *it_j;
-
-    cross_settings.emplace_back(i, j);
+    std::advance(it_i, i);
+    std::advance(it_j, j);
+    cross_settings.emplace_back(*it_i, *it_j);
   }
 
   parallel::chromosome_cross chromosome_cross;
   chromosome_cross(cross_settings);
 
-  for (auto chromosome : chromosome_cross.created()) {
-    chromosomes_.insert(chromosome);
-  }
+  const auto& c = chromosome_cross.created();
+  for_each(c.begin(), c.end(), [&](auto c) { chromosomes_.insert(c); });
 }
 
 void algorithm::mutate_random_chromosomes() {
+  if (chromosomes_.size() < 1) {
+    return;
+  }
+
   std::vector<parallel::mutation_settings> mutation_settings;
-  for (unsigned int i = 0; i < settings_.mutation_count(); i++) {
-    unsigned int n = settings_.random_to(chromosomes_.size() - 1);
+  for (auto i = 0; i < settings_.mutation_count(); i++) {
     auto it = chromosomes_.begin();
-    std::advance(it, n);
+    std::advance(it, settings_.random_to(chromosomes_.size() - 1));
 
     unsigned int add = settings_.random_to(10);
     unsigned int remove = settings_.random_to(10);
@@ -165,9 +157,8 @@ void algorithm::mutate_random_chromosomes() {
   parallel::chromosome_mutate chromosome_mutate;
   chromosome_mutate(mutation_settings);
 
-  for (auto chromosome : chromosome_mutate.created()) {
-    chromosomes_.insert(chromosome);
-  }
+  const auto& c = chromosome_mutate.created();
+  for_each(c.begin(), c.end(), [&](auto c) { chromosomes_.insert(c); });
 }
 
 void algorithm::mutate_increase_chromosome(chromosome* chromosome) {
