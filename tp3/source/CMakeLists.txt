@@ -1,8 +1,8 @@
 set(SOURCE_FILES
     algorithm.cpp
+    algorithm_basic.cpp
     chromosome.cpp
     chromosome_parallel.cpp
-    greedy.cpp
     population.cpp
     settings.cpp
 )

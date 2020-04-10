@@ -46,7 +46,7 @@ TEST_CASE("Isolation are correctly inserted in chromosome") {
 
   auto relations = population.relations();
 
-  REQUIRE(chromosome.isolations().size() == 4);
+  REQUIRE(chromosome.isolations().size() == 1);
   for (const auto& isolation : chromosome.isolations()) {
     REQUIRE(relations.find(isolation) != relations.end());
   }

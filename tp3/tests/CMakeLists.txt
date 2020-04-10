@@ -1,5 +1,5 @@
 set(TEST_SOURCE_FILES
-    greedy_test.cpp
+    algorithm_basic.cpp
     population_test.cpp
     chromosome_test.cpp
 )

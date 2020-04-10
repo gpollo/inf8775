@@ -1,5 +1,5 @@
+#include <algorithm_basic.hpp>
 #include <chromosome.hpp>
-#include <greedy.hpp>
 #include <population.hpp>
 #include <settings.hpp>
 
@@ -15,11 +15,11 @@ chromosome::chromosome(settings& settings, const population& pop)
   const type::relations& relations = population_.relations();
   std::vector<type::relation> relations_vec(relations.begin(), relations.end());
 
-  greedy greedy(settings_, population_);
-  auto solutions = greedy.run();
+  algorithm_basic algorithm_basic(settings_, population_);
+  auto solutions = algorithm_basic.isolate_50_percent();
   isolations_.insert(solutions.begin(), solutions.end());
 
-  //int isolation_count = relations.size() * settings_.initial_isolation_factor();
+  //int isolation_count = isolations_.size() + 50;
   //while (isolations_.size() < isolation_count) {
   //  isolations_.insert(settings_.random_from(relations_vec));
   //}

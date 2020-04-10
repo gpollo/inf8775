@@ -1,5 +1,5 @@
 #include <catch.hpp>
-#include <greedy.hpp>
+#include <algorithm_basic.hpp>
 #include <population.hpp>
 #include <settings.hpp>
 
@@ -9,7 +9,7 @@
 
 namespace tp {
 
-class greedy_mock_settings : public settings {
+class algorithm_basic_mock_settings : public settings {
   public:
     virtual unsigned int virality() const {
       return 1;
@@ -37,12 +37,12 @@ tp::population create_population() {
   return pop;
 }
 
-TEST_CASE("Greedy algorithm return correct isolations") {
+TEST_CASE("basic algorithm for isolating infected should return correct isolations") {
   tp::population population = create_population();
-  tp::greedy_mock_settings settings;
-  tp::greedy greedy(settings, population);
+  tp::algorithm_basic_mock_settings settings;
+  tp::algorithm_basic algorithm_basic(settings, population);
 
-  auto solutions = greedy.run();
+  auto solutions = algorithm_basic.isolate_infected();
   REQUIRE(solutions.contains({0, 2}));
   REQUIRE(solutions.contains({0, 3}));
   REQUIRE(solutions.contains({1, 2}));
