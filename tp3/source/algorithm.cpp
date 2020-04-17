@@ -19,9 +19,7 @@ algorithm::algorithm(bool print_solutions, bool print_timestamp, settings& setti
 }
 
 algorithm::~algorithm() {
-  for (auto chromosome : chromosomes_) {
-    delete chromosome;
-  }
+  std::for_each(chromosomes_.begin(), chromosomes_.end(), std::default_delete<chromosome>());
 }
 
 void algorithm::run() {
@@ -49,8 +47,6 @@ void algorithm::run() {
       print_solution(best);
     }
   }
-
-  print_solution(best);
 }
 
 void algorithm::print_solution(const type::solution& solution) const {

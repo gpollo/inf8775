@@ -16,6 +16,10 @@ void handle_sigsegv(int signal) {
 
 tp::algorithm* algorithm;
 void handle_sigint(int signal) {
+  if (signal != SIGINT) {
+    return;
+  }
+
   std::cerr << "\rSIGINT: stopping the algorithm" << std::endl;
   if (algorithm != nullptr) {
     algorithm->stop();

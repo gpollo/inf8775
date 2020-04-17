@@ -89,8 +89,8 @@ std::optional<unsigned int> chromosome::cost() {
 }
 
 void chromosome::add_isolation() {
-  auto r = population_.relations();
-  auto i = isolations_;
+  auto& r = population_.relations();
+  auto& i = isolations_;
 
   std::vector<type::relation> available;
   set_difference(r.begin(), r.end(), i.begin(), i.end(), std::inserter(available, available.begin()));
