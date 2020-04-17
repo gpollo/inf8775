@@ -1,0 +1,11 @@
+# cmake build directory
+build/*
+
+# generated dataset
+exemplaires/
+
+# libreoffice lock files
+.~lock*
+
+# generated remise
+*_tp3.zip
