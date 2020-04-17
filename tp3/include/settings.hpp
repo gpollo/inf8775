@@ -9,7 +9,7 @@ namespace tp {
 
 class settings {
   public:
-    settings();
+    settings(unsigned int virality);
     virtual bool binary_random();
     virtual unsigned int percent_random();
     virtual unsigned int random_to(unsigned int upper);

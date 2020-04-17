@@ -6,9 +6,9 @@
 
 namespace tp {
 
-settings::settings()
-  : initial_isolation_factor_(0.5), chromosome_count_(25),
-    virality_(3),
+settings::settings(unsigned int virality)
+  : initial_isolation_factor_(0.5), chromosome_count_(10),
+    virality_(virality),
     cross_count_(10), mutation_count_(100),
     random_device_(), generator_(random_device_()), uniform_(0, 100) {}
 

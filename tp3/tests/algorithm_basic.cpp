@@ -5,19 +5,6 @@
 
 #include <set>
 
-#include <iostream>
-
-namespace tp {
-
-class algorithm_basic_mock_settings : public settings {
-  public:
-    virtual unsigned int virality() const {
-      return 1;
-    }
-};
-
-} // namespace tp
-
 static
 tp::population create_population() {
   tp::population pop(6);
@@ -39,7 +26,7 @@ tp::population create_population() {
 
 TEST_CASE("basic algorithm for isolating infected should return correct isolations") {
   tp::population population = create_population();
-  tp::algorithm_basic_mock_settings settings;
+  tp::settings settings(1);
   tp::algorithm_basic algorithm_basic(settings, population);
 
   auto solutions = algorithm_basic.isolate_infected();

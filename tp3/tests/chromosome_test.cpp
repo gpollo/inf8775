@@ -9,6 +9,8 @@ namespace tp {
 
 class mock_settings : public settings {
   public:
+    mock_settings(): settings(2) { }
+
     virtual unsigned int virality() const {
       return 2;
     }

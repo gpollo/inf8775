@@ -131,7 +131,7 @@ void fail_load_dataset(const char* exec_name, const char* filename, const char* 
 
 int main(int argc, char* argv[]) {
   std::string dataset = "../exemplaires/1000_3000_30_0.txt";
-  unsigned int virality = 5;
+  unsigned int virality = 3;
   bool print_solutions = false;
   bool print_timestamp = false;
 
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     fail_load_dataset(exec_name, dataset.c_str(), std::get<std::string>(population_file).c_str());
   }
 
-  tp::settings settings;
+  tp::settings settings(virality);
   tp::population population = std::get<tp::population>(population_file);
   tp::algorithm algorithm(print_solutions, print_timestamp, settings, population);
   return run(&algorithm);
